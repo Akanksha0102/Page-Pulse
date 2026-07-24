@@ -1,3 +1,11 @@
+const fs = require('fs');
+console.log('Files in __dirname:', fs.readdirSync(__dirname));
+try {
+  console.log('Files in public/:', fs.readdirSync(path.join(__dirname, 'public')));
+} catch (err) {
+  console.log('ERROR reading public/:', err.message);
+}
+
 const express = require('express');
 const axios = require('axios');
 const path = require('path');
