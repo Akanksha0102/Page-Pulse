@@ -1,17 +1,13 @@
-const fs = require('fs');
-console.log('Files in __dirname:', fs.readdirSync(__dirname));
-try {
-  console.log('Files in public/:', fs.readdirSync(path.join(__dirname, 'public')));
-} catch (err) {
-  console.log('ERROR reading public/:', err.message);
-}
-
 const express = require('express');
 const axios = require('axios');
 const path = require('path');
-const { validateUrl } = require('./lib/validateUrl');
-const { parseHtml } = require('./lib/parser');
 
+console.log('Files in __dirname:', require('fs').readdirSync(__dirname));
+try {
+  console.log('Files in public/:', require('fs').readdirSync(path.join(__dirname, 'public')));
+} catch (err) {
+  console.log('ERROR reading public/:', err.message);
+}
 const app = express();
 const PORT = process.env.PORT || 3000;
 const FETCH_TIMEOUT_MS = 8000;
