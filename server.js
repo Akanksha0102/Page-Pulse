@@ -1,17 +1,13 @@
 const express = require('express');
 const axios = require('axios');
 const path = require('path');
+const { validateUrl } = require('./lib/validateUrl');
+const { parseHtml } = require('./lib/parser');
 
-console.log('Files in __dirname:', require('fs').readdirSync(__dirname));
-try {
-  console.log('Files in public/:', require('fs').readdirSync(path.join(__dirname, 'public')));
-} catch (err) {
-  console.log('ERROR reading public/:', err.message);
-}
 const app = express();
 const PORT = process.env.PORT || 3000;
 const FETCH_TIMEOUT_MS = 8000;
-const MAX_RESPONSE_BYTES = 5 * 1024 * 1024; // 5MB cap so a huge page can't hang the server
+const MAX_RESPONSE_BYTES = 5 * 1024 * 1024; 
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
@@ -23,6 +19,14 @@ app.get('/api/audit', async (req, res) => {
   if (!validation.ok) {
     return res.status(400).json({ error: validation.reason });
   }
+
+  const ownHost = req.get('host');
+  if (ownHost && validation.url.hostname === ownHost.split(':')[0]) {
+    return res.status(400).json({
+      error: 'Page Pulse cannot audit itself. Enter the URL of the site you want to check.',
+    });
+  }
+
   const targetUrl = validation.url.toString();
 
   const startedAt = Date.now();
@@ -33,8 +37,6 @@ app.get('/api/audit', async (req, res) => {
       timeout: FETCH_TIMEOUT_MS,
       maxRedirects: 5,
       maxContentLength: MAX_RESPONSE_BYTES,
-      // Don't throw on 4xx/5xx - we want to report the target's real
-      // status code in our JSON rather than collapsing it into a 500.
       validateStatus: () => true,
       responseType: 'text',
       headers: {
